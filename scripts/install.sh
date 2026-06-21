@@ -207,12 +207,22 @@ install_claude_if_missing() {
 
     require_command npm
 
-    npm_root=$(npm root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
-    if [ -w "$npm_root" ] || [ -w "${npm_root%/*}" ]; then
+    if [ "$dry_run" -eq 1 ]; then
         run npm install -g @anthropic-ai/claude-code
+        return 0
+    fi
+
+    npm_path=$(command -v npm)
+    npm_root=$("$npm_path" root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
+    npm_prefix=$("$npm_path" config get prefix 2>/dev/null || echo "/usr/local")
+    npm_bin="$npm_prefix/bin"
+
+    if [ -w "$npm_root" ] && [ -w "$npm_bin" ]; then
+        run "$npm_path" install -g @anthropic-ai/claude-code
     else
-        printf 'Global npm directory (%s) is not writable. Elevating privileges with sudo...\n' "$npm_root"
-        run sudo npm install -g @anthropic-ai/claude-code
+        command -v sudo >/dev/null 2>&1 || fail "Global npm directories are not writable and sudo is missing. Please fix permissions manually."
+        printf 'Global npm directories are not writable. Elevating privileges with sudo...\n'
+        run sudo env "PATH=$PATH" "$npm_path" install -g @anthropic-ai/claude-code
     fi
 }
 
@@ -224,12 +234,22 @@ install_codex_if_missing() {
 
     require_command npm
 
-    npm_root=$(npm root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
-    if [ -w "$npm_root" ] || [ -w "${npm_root%/*}" ]; then
+    if [ "$dry_run" -eq 1 ]; then
         run npm install -g @openai/codex
+        return 0
+    fi
+
+    npm_path=$(command -v npm)
+    npm_root=$("$npm_path" root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
+    npm_prefix=$("$npm_path" config get prefix 2>/dev/null || echo "/usr/local")
+    npm_bin="$npm_prefix/bin"
+
+    if [ -w "$npm_root" ] && [ -w "$npm_bin" ]; then
+        run "$npm_path" install -g @openai/codex
     else
-        printf 'Global npm directory (%s) is not writable. Elevating privileges with sudo...\n' "$npm_root"
-        run sudo npm install -g @openai/codex
+        command -v sudo >/dev/null 2>&1 || fail "Global npm directories are not writable and sudo is missing. Please fix permissions manually."
+        printf 'Global npm directories are not writable. Elevating privileges with sudo...\n'
+        run sudo env "PATH=$PATH" "$npm_path" install -g @openai/codex
     fi
 }
 
