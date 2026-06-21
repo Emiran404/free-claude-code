@@ -206,7 +206,14 @@ install_claude_if_missing() {
     fi
 
     require_command npm
-    run npm install -g @anthropic-ai/claude-code
+
+    npm_root=$(npm root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
+    if [ -w "$npm_root" ] || [ -w "${npm_root%/*}" ]; then
+        run npm install -g @anthropic-ai/claude-code
+    else
+        printf 'Global npm directory (%s) is not writable. Elevating privileges with sudo...\n' "$npm_root"
+        run sudo npm install -g @anthropic-ai/claude-code
+    fi
 }
 
 install_codex_if_missing() {
@@ -216,7 +223,14 @@ install_codex_if_missing() {
     fi
 
     require_command npm
-    run npm install -g @openai/codex
+
+    npm_root=$(npm root -g 2>/dev/null || echo "/usr/local/lib/node_modules")
+    if [ -w "$npm_root" ] || [ -w "${npm_root%/*}" ]; then
+        run npm install -g @openai/codex
+    else
+        printf 'Global npm directory (%s) is not writable. Elevating privileges with sudo...\n' "$npm_root"
+        run sudo npm install -g @openai/codex
+    fi
 }
 
 install_or_update_uv() {
